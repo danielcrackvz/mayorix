@@ -1,5 +1,5 @@
 /* ==========================================================================
-   ESTILOS DE LA BARRA DE NAVEGACIÓN (NAVBAR)
+   NAVBAR CON MENÚ LATERAL DESLIZANTE (IZQUIERDA A DERECHA)
    ========================================================================== */
 
 .navbar {
@@ -15,14 +15,40 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 68px;
+  height: 64px;
 }
 
-/* Marca / Logotipo */
+/* Grupo Izquierdo: Botón hamburguesa + Logo */
+.navbar-left-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.hamburger-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 32px;
+  height: 24px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+}
+
+.h-bar {
+  width: 100%;
+  height: 2.5px;
+  background-color: #ffffff;
+  border-radius: 2px;
+  transition: all 0.25s ease;
+}
+
 .navbar-brand {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.5rem;
   color: #ffffff;
   font-weight: 800;
   font-size: 1.35rem;
@@ -45,146 +71,207 @@
   height: 20px;
 }
 
-/* Enlaces */
-.navbar-links {
-  display: flex;
+.brand-icon.small {
+  width: 28px;
+  height: 28px;
+}
+
+.brand-icon.small svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Enlaces Desktop */
+.desktop-nav-links {
+  display: none;
   align-items: center;
   gap: 1.25rem;
 }
 
-.nav-item {
+.desktop-nav-item {
   color: #e2e8f0;
-  font-size: 0.95rem;
-  font-weight: 500;
+  font-size: 0.92rem;
+  font-weight: 600;
   transition: color 0.2s ease;
-  padding: 0.4rem 0.2rem;
 }
 
-.nav-item:hover {
+.desktop-nav-item:hover {
   color: #ffffff;
 }
 
-.btn-publish-nav {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
+.btn-nav-publish-desktop {
   background-color: #0f766e;
   color: #ffffff;
-  font-size: 0.88rem;
-  font-weight: 600;
-  padding: 0.55rem 1.05rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 0.45rem 0.95rem;
   border-radius: 9999px;
-  transition: background-color 0.2s ease, transform 0.15s ease;
+  transition: background-color 0.2s ease;
 }
 
-.btn-publish-nav:hover {
-  background-color: #115e59;
+@media (min-width: 860px) {
+  .desktop-nav-links {
+    display: flex;
+  }
+}
+
+/* Grupo Derecho: Botón Iniciar Sesión en el Header */
+.navbar-right-group {
+  display: flex;
+  align-items: center;
+}
+
+.btn-header-login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  color: #07433a;
+  font-size: 0.85rem;
+  font-weight: 800;
+  padding: 0.45rem 0.95rem;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.btn-header-login:hover {
+  background-color: #f1f5f9;
   transform: translateY(-1px);
 }
 
-.btn-nav-outline {
-  border: 1px solid rgba(255, 255, 255, 0.35);
+.btn-header-logout {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fca5a5;
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   MENÚ LATERAL DESLIZANTE (OFF-CANVAS DRAWER)
+   ========================================================================== */
+
+.lateral-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 280px;
+  max-width: 78vw;
+  background-color: #05332c;
   color: #ffffff;
-  font-size: 0.88rem;
+  z-index: 2000;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+}
+
+.lateral-drawer.drawer-open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.15rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #042721;
+}
+
+.drawer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.drawer-brand-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.drawer-close-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.drawer-close-btn:hover {
+  color: #ffffff;
+}
+
+.drawer-nav-list {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1.25rem;
+  color: #e2e8f0;
+  font-size: 0.95rem;
   font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  border-left: 3px solid transparent;
   transition: all 0.2s ease;
 }
 
-.btn-nav-outline:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: #ffffff;
+.drawer-item:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border-left-color: #10b981;
 }
 
-.navbar-logout-btn {
+.drawer-logout-action {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.9rem 1.25rem;
   background: transparent;
   border: none;
-  color: #cbd5e1;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 0.4rem 0.6rem;
-  transition: color 0.2s ease;
-}
-
-.navbar-logout-btn:hover {
   color: #fca5a5;
-}
-
-/* Menú hamburguesa (móviles) */
-.menu-toggle {
-  display: none;
-  flex-direction: column;
-  justify-content: space-around;
-  width: 28px;
-  height: 22px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  z-index: 1001;
-}
-
-.menu-toggle .bar {
+  font-size: 0.95rem;
+  font-weight: 600;
   width: 100%;
-  height: 2px;
-  background-color: #ffffff;
-  border-radius: 2px;
-  transition: all 0.25s ease;
+  text-align: left;
+  cursor: pointer;
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Transformación de hamburguesa a cruz al abrir */
-.menu-toggle.open .bar:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
+.drawer-logout-action:hover {
+  background-color: rgba(239, 68, 68, 0.12);
 }
 
-.menu-toggle.open .bar:nth-child(2) {
+/* Telón de fondo oscuro (Backdrop) */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: 1999;
   opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
 }
 
-.menu-toggle.open .bar:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
-@media (max-width: 820px) {
-  .menu-toggle {
-    display: flex;
-  }
-
-  .navbar-links {
-    position: fixed;
-    top: 68px;
-    left: 0;
-    right: 0;
-    background-color: #063931;
-    flex-direction: column;
-    align-items: stretch;
-    padding: 1.5rem;
-    gap: 1rem;
-    border-bottom: 2px solid #0f766e;
-    box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-    transform: translateY(-150%);
-    opacity: 0;
-    pointer-events: none;
-    transition: all 0.3s ease-in-out;
-  }
-
-  .navbar-links.active {
-    transform: translateY(0);
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .nav-item, .navbar-logout-btn {
-    padding: 0.75rem 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    text-align: left;
-  }
-
-  .btn-publish-nav, .btn-nav-outline {
-    text-align: center;
-    justify-content: center;
-    margin-top: 0.5rem;
-  }
+.drawer-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
 }

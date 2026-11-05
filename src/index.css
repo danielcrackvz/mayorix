@@ -1077,3 +1077,139 @@ img {
     display: none;
   }
 }
+
+/* ==========================================================================
+   AJUSTES CABECERA MIS PUBLICACIONES (EVITAR DESBORDE MÓVIL)
+   ========================================================================== */
+.seller-dashboard-header {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.5rem 0 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .seller-dashboard-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.seller-title-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.seller-title-badge-row h1 {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.btn-add-product {
+  white-space: nowrap;
+  align-self: flex-start;
+}
+
+@media (min-width: 640px) {
+  .btn-add-product {
+    align-self: center;
+  }
+}
+
+/* ==========================================================================
+   VISTAS DE LOGIN Y REGISTRO (AUTENTICACIÓN MODERNA)
+   ========================================================================== */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 0 3.5rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+@media (min-width: 480px) {
+  .auth-card {
+    padding: 2.25rem 2rem;
+  }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 1.75rem;
+}
+
+.auth-logo-badge {
+  width: 46px;
+  height: 46px;
+  background-color: var(--primary-light);
+  color: var(--primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 0.75rem;
+}
+
+.auth-header h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: -0.01em;
+  margin-bottom: 0.35rem;
+}
+
+.auth-header p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.auth-btn-submit {
+  width: 100%;
+  padding: 0.85rem;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.auth-footer-prompt {
+  margin-top: 1.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f1f5f9;
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.auth-alt-link {
+  color: var(--primary);
+  font-weight: 800;
+}
+
+.auth-alt-link:hover {
+  text-decoration: underline;
+}

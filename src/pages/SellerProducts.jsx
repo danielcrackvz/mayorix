@@ -46,49 +46,50 @@ export default function SellerProducts() {
 
   return (
     <div className="container main-content">
-      <section style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem 0 1rem" }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
-            <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--primary)" }}>Mis publicaciones</h1>
+      {/* Cabecera responsiva: en móvil se apila y nunca se sale de la pantalla */}
+      <section className="seller-dashboard-header">
+        <div className="seller-header-left">
+          <div className="seller-title-badge-row">
+            <h1>Mis publicaciones</h1>
             <VerifiedBadge verified={isVerified} />
           </div>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-            Administra los artículos que tienes en venta en Mayorix.
+          <p className="seller-subtitle">
+            Administra los artículos que tienes en venta dentro del marketplace Mayorix.
           </p>
         </div>
 
-        <Link to="/publicar" className="btn btn-primary">
+        <Link to="/publicar" className="btn btn-primary btn-add-product">
           + Nuevo producto
         </Link>
       </section>
 
-      {/* Contadores con separación adecuada */}
-      <div style={{ display: "flex", gap: "1rem", margin: "1rem 0 1.5rem" }}>
-        <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "0.75rem 1.25rem" }}>
-          <span style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--primary)", display: "block" }}>
-            {products.length}
-          </span>
-          <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)" }}>
-            Productos activos
-          </span>
+      {/* Tarjetas de estadísticas rápidas */}
+      <div className="seller-stats-strip">
+        <div className="stat-card">
+          <span className="stat-num">{products.length}</span>
+          <span className="stat-text">Productos activos</span>
         </div>
-        <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "0.75rem 1.25rem" }}>
-          <span style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--primary)", display: "block" }}>
-            {products.reduce((acc, curr) => acc + (parseInt(curr.stock) || 0), 0)}
+        <div className="stat-card">
+          <span className="stat-num">
+            {products.reduce((acc, curr) => acc + (parseInt(curr.stock, 10) || 0), 0)}
           </span>
-          <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)" }}>
-            Unidades en stock
-          </span>
+          <span className="stat-text">Unidades en stock</span>
         </div>
       </div>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem" }}>Cargando tus productos...</div>
+        <div style={{ textAlign: "center", padding: "3rem", color: "var(--text-muted)" }}>
+          Cargando tus publicaciones...
+        </div>
       ) : products.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", background: "#ffffff", borderRadius: "12px", border: "1px dashed var(--border-color)" }}>
+        <div className="empty-catalog">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 1rem", color: "var(--text-light)" }}>
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+          </svg>
           <h3 style={{ marginBottom: "0.4rem" }}>Aún no tienes productos publicados</h3>
-          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginBottom: "1rem" }}>
-            Publica tu primer artículo al por mayor o menor.
+          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginBottom: "1.25rem" }}>
+            Comienza a vender al por mayor o al por menor publicando tu primer artículo.
           </p>
           <Link to="/publicar" className="btn btn-primary">
             Publicar mi primer producto
@@ -104,15 +105,22 @@ export default function SellerProducts() {
             return (
               <div key={product.id} className="product-card">
                 <div className="product-image-container">
-                  <img src={imageSrc} alt={product.title} className="product-image" />
+                  <img src={imageSrc} alt={product.title} className="product-image" loading="lazy" />
+                  <div className="product-badge-overlay">
+                    <span className="stock-pill">Stock: {product.stock || 0} u.</span>
+                  </div>
                 </div>
+
                 <div className="product-card-body">
                   <h4 className="product-title">{product.title}</h4>
                   <div className="product-pricing-row">
                     <span className="product-price">Bs {product.price}</span>
-                    <span className="product-sale-tag">Stock: {product.stock}</span>
+                    <span className="product-sale-tag">
+                      {product.saleType === "ambos" ? "Mayor y menor" : `Al por ${product.saleType}`}
+                    </span>
                   </div>
-                  <Link to={`/producto/${product.id}`} className="btn btn-outline" style={{ marginTop: "0.75rem", fontSize: "0.8rem", padding: "0.4rem" }}>
+
+                  <Link to={`/producto/${product.id}`} className="btn btn-outline" style={{ marginTop: "0.75rem", fontSize: "0.82rem", padding: "0.45rem" }}>
                     Ver detalle público
                   </Link>
                 </div>
