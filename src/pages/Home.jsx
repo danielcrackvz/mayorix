@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getAllProducts } from "../services/products";
+import { getSellerProfile } from "../services/sellers";
 import VerifiedBadge from "../components/location/VerifiedBadge";
 
 export default function Home() {
@@ -11,10 +12,50 @@ export default function Home() {
 
   useEffect(() => {
     let isMounted = true;
+    setLoading(true);
+
     getAllProducts()
-      .then((data) => {
+      .then(async (data) => {
+        if (!isMounted) return;
+        if (!data || data.length === 0) {
+          setProducts([]);
+          setLoading(false);
+          return;
+        }
+
+        // Consultar perfiles de vendedores para verificar los dos requisitos
+        const sellerIds = [...new Set(data.map((p) => p.sellerId).filter(Boolean))];
+        const sellersMap = {};
+
+        await Promise.all(
+          sellerIds.map(async (sid) => {
+            try {
+              const profile = await getSellerProfile(sid);
+              if (profile) sellersMap[sid] = profile;
+            } catch (err) {
+              console.error("Error al cargar vendedor:", sid, err);
+            }
+          })
+        );
+
+        // Regla estricta: tiene mapa (lat+lng) Y foto del local
+        const enriched = data.map((prod) => {
+          const seller = sellersMap[prod.sellerId];
+          const hasMap = Boolean(
+            (seller?.location?.lat && seller?.location?.lng) ||
+            (prod?.location?.lat && prod?.location?.lng)
+          );
+          const hasPhoto = Boolean(seller?.storePhotoUrl || prod?.storePhotoUrl);
+          const isVerified = Boolean(hasMap && hasPhoto);
+
+          return {
+            ...prod,
+            isSellerVerified: isVerified,
+          };
+        });
+
         if (isMounted) {
-          setProducts(data || []);
+          setProducts(enriched);
           setLoading(false);
         }
       })
@@ -28,13 +69,12 @@ export default function Home() {
     };
   }, []);
 
-  // Filtrado reactivo por texto y modalidad (mayor/menor)
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      product.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
 
     if (!matchesSearch) return false;
-
     if (filterType === "todos") return true;
     if (filterType === "mayor") return product.saleType === "mayor" || product.saleType === "ambos";
     if (filterType === "menor") return product.saleType === "menor" || product.saleType === "ambos";
@@ -43,14 +83,12 @@ export default function Home() {
 
   return (
     <div className="container main-content">
-      {/* Encabezado y Presentación */}
       <section className="catalog-header">
         <div className="catalog-title-group">
           <h1>Catálogo Mayorix</h1>
           <p>Compra y venta al por mayor y menor con verificación física y geográfica de vendedores.</p>
         </div>
 
-        {/* Buscador y Filtros */}
         <div className="catalog-controls">
           <div className="search-box-wrapper">
             <span className="search-icon">
@@ -70,18 +108,21 @@ export default function Home() {
 
           <div className="filter-pills">
             <button
+              type="button"
               className={`pill-btn ${filterType === "todos" ? "active" : ""}`}
               onClick={() => setFilterType("todos")}
             >
               Todos ({products.length})
             </button>
             <button
+              type="button"
               className={`pill-btn ${filterType === "mayor" ? "active" : ""}`}
               onClick={() => setFilterType("mayor")}
             >
               Al por mayor
             </button>
             <button
+              type="button"
               className={`pill-btn ${filterType === "menor" ? "active" : ""}`}
               onClick={() => setFilterType("menor")}
             >
@@ -91,29 +132,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Estado de carga */}
       {loading ? (
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p style={{ color: "var(--text-muted)", fontWeight: 500 }}>Cargando catálogo Mayorix...</p>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text-muted)" }}>
+          Cargando catálogo Mayorix...
         </div>
       ) : filteredProducts.length === 0 ? (
-        <div className="empty-catalog">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 1rem", color: "var(--text-light)" }}>
-            <circle cx="12" cy="12" r="10"></circle>
-            <path d="M16 16s-1.5-2-4-2-4 2-4 2"></path>
-            <line x1="9" y1="9" x2="9.01" y2="9"></line>
-            <line x1="15" y1="9" x2="15.01" y2="9"></line>
-          </svg>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--text-muted)" }}>
           <h3>No se encontraron productos</h3>
-          <p>Intenta cambiar los términos de búsqueda o selecciona otro filtro.</p>
+          <p>Intenta con otro término de búsqueda.</p>
         </div>
       ) : (
-        /* Cuadrícula de Productos */
         <div className="catalog-grid">
           {filteredProducts.map((product) => {
-            // Se valida si el vendedor o el producto cuenta con verificación geográfica
-            const isVerified = Boolean(product.hasVerifiedLocation || product.sellerVerified);
             const imageSrc = (product.images && product.images.length > 0)
               ? product.images[0]
               : "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80";
@@ -132,7 +162,7 @@ export default function Home() {
                     loading="lazy"
                   />
                   <div className="product-badge-overlay">
-                    <VerifiedBadge verified={isVerified} />
+                    <VerifiedBadge verified={product.isSellerVerified} />
                   </div>
                 </div>
 

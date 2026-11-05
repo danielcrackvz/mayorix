@@ -2,94 +2,99 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getProductsBySeller } from "../services/products";
+import { getSellerProfile } from "../services/sellers";
 import VerifiedBadge from "../components/location/VerifiedBadge";
 
 export default function SellerProducts() {
-  const { currentUser, userProfile } = useAuth();
+  const { currentUser } = useAuth();
   const [products, setProducts] = useState([]);
+  const [sellerProfile, setSellerProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
-    if (currentUser?.uid) {
-      getProductsBySeller(currentUser.uid)
-        .then((data) => {
-          if (isMounted) {
-            setProducts(data || []);
-            setLoading(false);
-          }
-        })
-        .catch((err) => {
-          console.error("Error al cargar productos del vendedor:", err);
-          if (isMounted) setLoading(false);
-        });
-    } else {
+    if (!currentUser?.uid) {
       setLoading(false);
+      return;
     }
+
+    Promise.all([
+      getProductsBySeller(currentUser.uid),
+      getSellerProfile(currentUser.uid)
+    ])
+      .then(([prods, profile]) => {
+        if (!isMounted) return;
+        setProducts(prods || []);
+        setSellerProfile(profile);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error al cargar panel de vendedor:", err);
+        if (isMounted) setLoading(false);
+      });
 
     return () => {
       isMounted = false;
     };
   }, [currentUser?.uid]);
 
-  const isVerified = Boolean(userProfile?.hasVerifiedLocation);
+  const isVerified = Boolean(
+    sellerProfile?.location?.lat &&
+    sellerProfile?.location?.lng &&
+    sellerProfile?.storePhotoUrl
+  );
 
   return (
     <div className="container main-content">
-      {/* Encabezado del Panel del Vendedor */}
-      <section className="seller-dashboard-header">
-        <div className="seller-header-left">
-          <div className="seller-title-row">
-            <h1>Mis publicaciones</h1>
+      <section style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem 0 1rem" }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
+            <h1 style={{ fontSize: "1.75rem", fontWeight: 800, color: "var(--primary)" }}>Mis publicaciones</h1>
             <VerifiedBadge verified={isVerified} />
           </div>
-          <p className="seller-subtitle">
-            Administra los artículos que tienes en venta dentro del marketplace Mayorix.
+          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+            Administra los artículos que tienes en venta en Mayorix.
           </p>
         </div>
 
-        <Link to="/publicar" className="btn btn-primary btn-add-product">
-          <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
-            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-          </svg>
-          Nuevo producto
+        <Link to="/publicar" className="btn btn-primary">
+          + Nuevo producto
         </Link>
       </section>
 
-      {/* Resumen rápido */}
-      <div className="seller-stats-strip">
-        <div className="stat-card">
-          <span className="stat-num">{products.length}</span>
-          <span className="stat-text">Productos activos</span>
+      {/* Contadores con separación adecuada */}
+      <div style={{ display: "flex", gap: "1rem", margin: "1rem 0 1.5rem" }}>
+        <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "0.75rem 1.25rem" }}>
+          <span style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--primary)", display: "block" }}>
+            {products.length}
+          </span>
+          <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)" }}>
+            Productos activos
+          </span>
         </div>
-        <div className="stat-card">
-          <span className="stat-num">
+        <div style={{ background: "#ffffff", border: "1px solid var(--border-color)", borderRadius: "8px", padding: "0.75rem 1.25rem" }}>
+          <span style={{ fontSize: "1.5rem", fontWeight: 900, color: "var(--primary)", display: "block" }}>
             {products.reduce((acc, curr) => acc + (parseInt(curr.stock) || 0), 0)}
           </span>
-          <span className="stat-text">Unidades en inventario</span>
+          <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--text-muted)" }}>
+            Unidades en stock
+          </span>
         </div>
       </div>
 
-      {/* Estado de carga */}
       {loading ? (
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p style={{ color: "var(--text-muted)" }}>Cargando tu inventario...</p>
-        </div>
+        <div style={{ textAlign: "center", padding: "3rem" }}>Cargando tus productos...</div>
       ) : products.length === 0 ? (
-        <div className="empty-catalog">
-          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ margin: "0 auto 1rem", color: "var(--text-light)" }}>
-            <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-          </svg>
-          <h3>Aún no tienes productos publicados</h3>
-          <p>Comienza a vender al por mayor o menor publicando tu primer artículo.</p>
-          <Link to="/publicar" className="btn btn-primary" style={{ marginTop: "1.25rem" }}>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", background: "#ffffff", borderRadius: "12px", border: "1px dashed var(--border-color)" }}>
+          <h3 style={{ marginBottom: "0.4rem" }}>Aún no tienes productos publicados</h3>
+          <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginBottom: "1rem" }}>
+            Publica tu primer artículo al por mayor o menor.
+          </p>
+          <Link to="/publicar" className="btn btn-primary">
             Publicar mi primer producto
           </Link>
         </div>
       ) : (
-        /* Cuadrícula de productos del vendedor */
         <div className="catalog-grid">
           {products.map((product) => {
             const imageSrc = (product.images && product.images.length > 0)
@@ -97,36 +102,19 @@ export default function SellerProducts() {
               : "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80";
 
             return (
-              <div key={product.id} className="product-card seller-product-card">
+              <div key={product.id} className="product-card">
                 <div className="product-image-container">
-                  <img
-                    src={imageSrc}
-                    alt={product.title}
-                    className="product-image"
-                    loading="lazy"
-                  />
-                  <div className="product-badge-overlay">
-                    <span className="stock-pill">
-                      Stock: {product.stock || 0} u.
-                    </span>
-                  </div>
+                  <img src={imageSrc} alt={product.title} className="product-image" />
                 </div>
-
                 <div className="product-card-body">
                   <h4 className="product-title">{product.title}</h4>
-                  
                   <div className="product-pricing-row">
                     <span className="product-price">Bs {product.price}</span>
-                    <span className="product-sale-tag">
-                      {product.saleType === "ambos" ? "Mayor y menor" : `Al por ${product.saleType}`}
-                    </span>
+                    <span className="product-sale-tag">Stock: {product.stock}</span>
                   </div>
-
-                  <div className="seller-card-actions">
-                    <Link to={`/producto/${product.id}`} className="btn btn-outline btn-sm-action">
-                      Ver detalle público
-                    </Link>
-                  </div>
+                  <Link to={`/producto/${product.id}`} className="btn btn-outline" style={{ marginTop: "0.75rem", fontSize: "0.8rem", padding: "0.4rem" }}>
+                    Ver detalle público
+                  </Link>
                 </div>
               </div>
             );
