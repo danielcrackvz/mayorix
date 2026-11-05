@@ -11,12 +11,16 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 
-// Genera un identificador determinístico para evitar duplicar conversaciones por producto
+// Genera un identificador único y determinístico para la conversación
 function buildChatId(buyerId, sellerId, productId) {
   return `${productId}_${buyerId}_${sellerId}`;
 }
 
 export async function getOrCreateChat(buyerId, sellerId, productId, productTitle) {
+  if (!buyerId || !sellerId || !productId) {
+    throw new Error("Identificadores incompletos para crear el chat.");
+  }
+
   const chatId = buildChatId(buyerId, sellerId, productId);
   const chatRef = doc(db, "chats", chatId);
 
@@ -25,6 +29,7 @@ export async function getOrCreateChat(buyerId, sellerId, productId, productTitle
     {
       buyerId,
       sellerId,
+      participants: [buyerId, sellerId],
       productId,
       productTitle: productTitle || "Producto en Mayorix",
       updatedAt: serverTimestamp(),
@@ -35,8 +40,9 @@ export async function getOrCreateChat(buyerId, sellerId, productId, productTitle
   return chatId;
 }
 
-// Escucha en tiempo real los mensajes de una conversación
+// Escucha en tiempo real los mensajes de un chat abierto
 export function listenToMessages(chatId, callback) {
+  if (!chatId) return () => {};
   const messagesRef = collection(db, "chats", chatId, "messages");
   const q = query(messagesRef, orderBy("createdAt", "asc"));
 
@@ -47,15 +53,14 @@ export function listenToMessages(chatId, callback) {
       callback(messages);
     },
     (error) => {
-      console.error("Error al escuchar mensajes:", error);
-      callback([]);
+      console.error("Error al escuchar mensajes en tiempo real:", error);
     }
   );
 }
 
-// Envía un mensaje y actualiza el último mensaje en el resumen del chat
+// Envía un mensaje y actualiza el encabezado del chat para ambas partes
 export async function sendMessage(chatId, senderId, text) {
-  if (!text.trim()) return;
+  if (!chatId || !senderId || !text.trim()) return;
 
   const messagesRef = collection(db, "chats", chatId, "messages");
 
@@ -76,8 +81,9 @@ export async function sendMessage(chatId, senderId, text) {
   );
 }
 
-// Escucha en tiempo real los metadatos de un chat específico (cabecera)
+// Escucha los detalles del producto vinculado al chat
 export function listenToChatDetails(chatId, callback) {
+  if (!chatId) return () => {};
   const chatRef = doc(db, "chats", chatId);
   return onSnapshot(chatRef, (docSnap) => {
     if (docSnap.exists()) {
@@ -88,9 +94,11 @@ export function listenToChatDetails(chatId, callback) {
   });
 }
 
-// Escucha en tiempo real todas las conversaciones donde el usuario es comprador o vendedor
+// Escucha en tiempo real todas las conversaciones donde participa el usuario
 export function listenToUserChats(userId, callback) {
+  if (!userId) return () => {};
   const chatsRef = collection(db, "chats");
+
   const qBuyer = query(chatsRef, where("buyerId", "==", userId));
   const qSeller = query(chatsRef, where("sellerId", "==", userId));
 
@@ -98,7 +106,6 @@ export function listenToUserChats(userId, callback) {
   let sellerChats = [];
 
   function mergeAndSort() {
-    // Deduplicación mediante Map para evitar colisiones
     const chatMap = new Map();
     [...buyerChats, ...sellerChats].forEach((chat) => {
       chatMap.set(chat.id, chat);
@@ -106,10 +113,9 @@ export function listenToUserChats(userId, callback) {
 
     const merged = Array.from(chatMap.values());
 
-    // Ordenar de más reciente a más antiguo
     merged.sort((a, b) => {
-      const timeA = a.lastMessageAt?.toMillis ? a.lastMessageAt.toMillis() : (a.lastMessageAt?.seconds * 1000 || 0);
-      const timeB = b.lastMessageAt?.toMillis ? b.lastMessageAt.toMillis() : (b.lastMessageAt?.seconds * 1000 || 0);
+      const timeA = a.lastMessageAt?.toMillis ? a.lastMessageAt.toMillis() : (a.lastMessageAt?.seconds * 1000 || a.updatedAt?.seconds * 1000 || 0);
+      const timeB = b.lastMessageAt?.toMillis ? b.lastMessageAt.toMillis() : (b.lastMessageAt?.seconds * 1000 || b.updatedAt?.seconds * 1000 || 0);
       return timeB - timeA;
     });
 
