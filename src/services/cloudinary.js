@@ -1,5 +1,5 @@
-const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+const CLOUD_NAME = "iw5zw5hr";
+const UPLOAD_PRESET = "mayorix_unsigned";
 
 export async function uploadImage(file) {
   const formData = new FormData();
